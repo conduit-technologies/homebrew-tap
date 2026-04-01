@@ -1,15 +1,27 @@
 class Conduitai < Formula
-  desc "Search, install, and manage AI tools for Claude Code, Cursor, and Windsurf"
+  desc "Search, install, and manage AI tools for Claude Code"
   homepage "https://conduitai.app"
-  url "https://registry.npmjs.org/@conduitai-app/cli/-/cli-0.6.0.tgz"
-  sha256 "865bc5728575d4f4ce8551995fac47c1109efc04f4f86972f706df01567e5a25"
+  version "0.7.0"
   license "MIT"
 
-  depends_on "node@22"
+  on_macos do
+    on_arm do
+      url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.7.0/conduitai-darwin-arm64"
+      sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
+    end
+    on_intel do
+      url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.7.0/conduitai-darwin-x64"
+      sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
+    end
+  end
+
+  on_linux do
+    url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.7.0/conduitai-linux-x64"
+    sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
+  end
 
   def install
-    system "npm", "install", *std_npm_args
-    bin.install_symlink libexec.glob("bin/*")
+    bin.install Dir["conduitai-*"].first => "conduitai"
   end
 
   test do
