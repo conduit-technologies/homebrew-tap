@@ -1,22 +1,22 @@
 class Conduitai < Formula
   desc "Search, install, and manage AI tools for Claude Code"
   homepage "https://conduitai.app"
-  version "0.9.0"
+  version "0.9.1"
   license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.9.0/conduitai-darwin-arm64"
+      url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.9.1/conduitai-darwin-arm64"
       sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
     end
     on_intel do
-      url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.9.0/conduitai-darwin-x64"
+      url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.9.1/conduitai-darwin-x64"
       sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
     end
   end
 
   on_linux do
-    url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.9.0/conduitai-linux-x64"
+    url "https://github.com/conduit-technologies/conduitai-cli/releases/download/v0.9.1/conduitai-linux-x64"
     sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
   end
 
