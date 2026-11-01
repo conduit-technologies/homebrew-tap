@@ -37,14 +37,14 @@ cask "maccurrent" do
         exit 1
       fi
       exec /usr/bin/codesign --verify --deep --strict -R \\
-        'anchor apple generic and identifier "com.conduit-technologies.macCurrent" and certificate leaf[subject.OU] = "D3B973F339"' "$app"
+        '=anchor apple generic and identifier "com.conduit-technologies.macCurrent" and certificate leaf[subject.OU] = "D3B973F339"' "$app"
     SH
   end
 
   postflight_steps do
     run "/usr/bin/codesign",
         args: ["--verify", "--deep", "--strict", "-R",
-               'anchor apple generic and identifier "com.conduit-technologies.macCurrent" ' \
+               '=anchor apple generic and identifier "com.conduit-technologies.macCurrent" ' \
                'and certificate leaf[subject.OU] = "D3B973F339"', "{{appdir}}/macCurrent.app"]
   end
 
