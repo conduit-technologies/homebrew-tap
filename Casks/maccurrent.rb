@@ -22,11 +22,14 @@ cask "maccurrent" do
       set -eu
       app="$1"
       expected="$2"
-      if [ ! -e "$app" ]; then exit 0; fi
       if [ -L "$app" ]; then
         printf '%s\\n' 'The existing macCurrent app must not be a symbolic link.' >&2
         exit 1
       fi
+      if [ ! -e "$app" ]; then exit 0; fi
+      # Homebrew may leave an empty destination while upgrading its owned app.
+      # The postflight signature check still rejects adoption of an empty copy.
+      if [ -d "$app" ] && [ -z "$(/bin/ls -A "$app")" ]; then exit 0; fi
       installed=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")
       if [ "$installed" != "$expected" ]; then
         printf '%s\\n' "The existing macCurrent copy is $installed, but this cask is $expected." >&2
@@ -36,6 +39,13 @@ cask "maccurrent" do
       exec /usr/bin/codesign --verify --deep --strict -R \\
         'anchor apple generic and identifier "com.conduit-technologies.macCurrent" and certificate leaf[subject.OU] = "D3B973F339"' "$app"
     SH
+  end
+
+  postflight_steps do
+    run "/usr/bin/codesign",
+        args: ["--verify", "--deep", "--strict", "-R",
+               'anchor apple generic and identifier "com.conduit-technologies.macCurrent" ' \
+               'and certificate leaf[subject.OU] = "D3B973F339"', "{{appdir}}/macCurrent.app"]
   end
 
   zap trash: [

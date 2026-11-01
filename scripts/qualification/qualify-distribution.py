@@ -111,6 +111,17 @@ try:
     record('reject-adoption-of-older-direct-copy',args.older_version)
     shutil.rmtree(app)  # Only this explicitly disposable fixture copy.
     shutil.copytree(root/'target-reference.app',app,symlinks=True)
+    info_path=app/'Contents/Info.plist'
+    altered=plistlib.loads(info_path.read_bytes())
+    altered['CFBundleIdentifier']='invalid.qualification.signature'
+    info_path.write_bytes(plistlib.dumps(altered))
+    before=hashlib.sha256(info_path.read_bytes()).hexdigest()
+    rejected=brew('install','--cask','--adopt','--appdir='+str(appdir),token,check=False)
+    assert rejected.returncode!=0, 'A tampered direct copy was unexpectedly adopted'
+    assert info_path.exists() and hashlib.sha256(info_path.read_bytes()).hexdigest()==before
+    evidence['phases'].append({'name':'reject-tampered-direct-copy-without-changing-it','result':'passed'})
+    shutil.rmtree(app)  # Only the intentionally altered fixture.
+    shutil.copytree(root/'target-reference.app',app,symlinks=True)
     brew('install','--cask','--adopt','--appdir='+str(appdir),token)
     record('adopt-current-direct-copy',args.target_version)
     uninstall()
