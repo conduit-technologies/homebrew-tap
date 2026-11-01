@@ -2,8 +2,7 @@ cask "maccurrent" do
   version "1.2.0.68"
   sha256 "c88ea6c4874384af060602b9d249e934163b2b02208e932fed3076746166a5d3"
 
-  url "https://downloads.maccurrent.com/releases/direct/#{version}/macCurrent-#{version}.dmg",
-      verified: "downloads.maccurrent.com/"
+  url "https://downloads.maccurrent.com/releases/direct/#{version}/macCurrent-#{version}.dmg"
   name "macCurrent"
   desc "Find, install, and track supported application updates"
   homepage "https://maccurrent.com/"

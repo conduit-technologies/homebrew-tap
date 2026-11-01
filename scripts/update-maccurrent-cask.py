@@ -19,6 +19,14 @@ def update(manifest, cask):
         raise ValueError('Expected a versioned official artifact and exact SHA-256')
     if manifest.get('betaExpiresAt') is not None:
         raise ValueError('Expiring releases require manual review')
+    previous = re.search(r'^  version "([0-9.]+)"$', cask, re.M)
+    previous_checksum = re.search(r'^  sha256 "([a-f0-9]{64})"$', cask, re.M)
+    if previous:
+        parts = lambda value: tuple(int(p) for p in value.split('.')) + (0,) * (4 - len(value.split('.')))
+        if parts(version) < parts(previous[1]):
+            raise ValueError('A stale manifest cannot downgrade the cask')
+        if version == previous[1] and previous_checksum and artifact['sha256'] != previous_checksum[1]:
+            raise ValueError('Published versioned artifacts are immutable; checksum changed')
     text, count = re.subn(r'^  version "[^"]+"$', f'  version "{version}"', cask, count=1, flags=re.M)
     if count != 1:
         raise ValueError('Missing cask version')

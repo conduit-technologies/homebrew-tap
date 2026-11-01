@@ -28,4 +28,10 @@ class ManifestTests(unittest.TestCase):
             manifest = self.manifest(); manifest[field] = value
             with self.assertRaises(ValueError): module.update(manifest, '')
 
+    def test_rejects_stale_manifest_and_changed_versioned_bytes(self):
+        for previous in ['1.2.0.69', '1.2.0.68']:
+            cask = '  version "' + previous + '"\n  sha256 "' + 'b' * 64 + '"\n'
+            with self.subTest(previous=previous):
+                with self.assertRaises(ValueError): module.update(self.manifest(), cask)
+
 if __name__ == '__main__': unittest.main()
