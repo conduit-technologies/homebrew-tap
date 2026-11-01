@@ -3,6 +3,11 @@ on:
   pull_request:
     paths: ['Casks/maccurrent.rb', 'scripts/**', '.github/workflows/maccurrent-cask-pilot.yml']
   workflow_dispatch:
+    inputs:
+      qualify_distribution:
+        description: 'Explicit real cross-version Brew/Sparkle/adoption qualification'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -37,3 +42,44 @@ jobs:
           brew reinstall --cask --appdir="$appdir" conduit-technologies/tap/maccurrent
           brew uninstall --cask conduit-technologies/tap/maccurrent
           test ! -e "$app"
+
+  distribution:
+    if: github.event_name == 'workflow_dispatch' && inputs.qualify_distribution == true
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_ANALYTICS: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Require native Intel macOS 15
+        run: |
+          test "$(uname -m)" = x86_64
+          [[ "$(sw_vers -productVersion)" == 15.* ]]
+          test "$(sysctl -in sysctl.proc_translated 2>/dev/null || true)" != 1
+      - name: Build the pinned upstream Sparkle qualification tool
+        run: |
+          git clone --depth 1 --branch 2.9.6 https://github.com/sparkle-project/Sparkle.git "$RUNNER_TEMP/sparkle-source"
+          test "$(git -C "$RUNNER_TEMP/sparkle-source" rev-parse HEAD)" = ac2def288cbff5cfc7df3ffef6abdf45b72bcb0a
+          xcodebuild build -project "$RUNNER_TEMP/sparkle-source/Sparkle.xcodeproj" -scheme sparkle-cli \
+            -configuration Release -destination 'platform=macOS,arch=x86_64' -jobs 2 \
+            -derivedDataPath "$RUNNER_TEMP/sparkle-build" CODE_SIGNING_ALLOWED=NO \
+            MACOSX_DEPLOYMENT_TARGET=15.0 ONLY_ACTIVE_ARCH=YES ARCHS=x86_64
+          xcrun swiftc scripts/qualification/sparkle-preferences.swift -o "$RUNNER_TEMP/sparkle-preferences"
+      - name: Run genuine cross-version updates and safe adoption
+        run: |
+          brew tap conduit-technologies/tap "$GITHUB_WORKSPACE"
+          python3 scripts/qualification/qualify-distribution.py --brew "$(command -v brew)" \
+            --sparkle "$RUNNER_TEMP/sparkle-build/Build/Products/Release/sparkle.app/Contents/MacOS/sparkle" \
+            --preferences-helper "$RUNNER_TEMP/sparkle-preferences" \
+            --output "$RUNNER_TEMP/distribution-qualification"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: intel-distribution-qualification
+          path: |
+            ${{ runner.temp }}/distribution-qualification/evidence.json
+            ${{ runner.temp }}/distribution-qualification/commands.log
+          retention-days: 7

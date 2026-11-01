@@ -17,6 +17,25 @@ cask "maccurrent" do
 
   app "macCurrent.app"
 
+  preflight do
+    existing = appdir/"macCurrent.app"
+    next unless existing.exist?
+
+    raise "The existing macCurrent app must not be a symbolic link" if existing.symlink?
+
+    installed_version = system_command("/usr/libexec/PlistBuddy",
+                                       args: ["-c", "Print :CFBundleShortVersionString", existing/"Contents/Info.plist"]).stdout.strip
+    unless installed_version == version.to_s
+      raise "The existing macCurrent copy is #{installed_version}, but this cask is #{version}. " \
+            "Update the direct copy first, then adopt the matching release. Homebrew-owned copies use brew upgrade."
+    end
+
+    system_command "/usr/bin/codesign",
+                   args: ["--verify", "--deep", "--strict", "-R",
+                          'anchor apple generic and identifier "com.conduit-technologies.macCurrent" ' \
+                          'and certificate leaf[subject.OU] = "D3B973F339"', existing]
+  end
+
   zap trash: [
     "~/Library/Application Support/macCurrent",
     "~/Library/Caches/com.conduit-technologies.macCurrent",
