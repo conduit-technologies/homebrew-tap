@@ -23,11 +23,11 @@ token = 'conduit-technologies/tap/maccurrent'
 evidence = {'architecture': platform.machine(), 'osVersion': platform.mac_ver()[0], 'phases': [], 'result': 'failed'}
 
 def run(argv, check=True, timeout=600):
-    result = subprocess.run(list(map(str,argv)), env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
+    result = subprocess.run(list(map(str,argv)), env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
     with (root/'commands.log').open('a') as log:
-        log.write('$ '+ ' '.join(map(str,argv))+'\n'+result.stdout+'\n')
+        log.write('$ '+ ' '.join(map(str,argv))+'\n'+result.stdout+result.stderr+'\n')
     if check and result.returncode:
-        raise RuntimeError(f'{argv[0]} failed with {result.returncode}: {result.stdout[-1800:]}')
+        raise RuntimeError(f'{argv[0]} failed with {result.returncode}: {(result.stdout+result.stderr)[-1800:]}')
     return result
 
 def brew(*arguments, check=True):
@@ -51,7 +51,8 @@ def identity(expected):
     assert info['CFBundleShortVersionString']==expected, (info['CFBundleShortVersionString'],expected)
     assert info['LSMinimumSystemVersion']=='15.0'
     run(['/usr/bin/codesign','--verify','--deep','--strict',app])
-    signature=run(['/usr/bin/codesign','-dv','--verbose=4',app]).stdout
+    signed=run(['/usr/bin/codesign','-dv','--verbose=4',app])
+    signature=signed.stdout+signed.stderr
     assert 'TeamIdentifier=D3B973F339' in signature
     run(['/usr/sbin/spctl','--assess','--type','execute',app])
     run(['/usr/bin/lipo',app/'Contents/MacOS/macCurrent','-verify_arch',platform.machine()])

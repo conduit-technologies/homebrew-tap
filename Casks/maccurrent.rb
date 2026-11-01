@@ -17,23 +17,25 @@ cask "maccurrent" do
 
   app "macCurrent.app"
 
-  preflight do
-    existing = appdir/"macCurrent.app"
-    next unless existing.exist?
-
-    raise "The existing macCurrent app must not be a symbolic link" if existing.symlink?
-
-    installed_version = system_command("/usr/libexec/PlistBuddy",
-                                       args: ["-c", "Print :CFBundleShortVersionString", existing/"Contents/Info.plist"]).stdout.strip
-    unless installed_version == version.to_s
-      raise "The existing macCurrent copy is #{installed_version}, but this cask is #{version}. " \
-            "Update the direct copy first, then adopt the matching release. Homebrew-owned copies use brew upgrade."
-    end
-
-    system_command "/usr/bin/codesign",
-                   args: ["--verify", "--deep", "--strict", "-R",
-                          'anchor apple generic and identifier "com.conduit-technologies.macCurrent" ' \
-                          'and certificate leaf[subject.OU] = "D3B973F339"', existing]
+  preflight_steps do
+    run "/bin/sh", args: ["-c", <<~SH, "--", "{{appdir}}/macCurrent.app", "{{version}}"]
+      set -eu
+      app="$1"
+      expected="$2"
+      if [ ! -e "$app" ]; then exit 0; fi
+      if [ -L "$app" ]; then
+        printf '%s\\n' 'The existing macCurrent app must not be a symbolic link.' >&2
+        exit 1
+      fi
+      installed=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")
+      if [ "$installed" != "$expected" ]; then
+        printf '%s\\n' "The existing macCurrent copy is $installed, but this cask is $expected." >&2
+        printf '%s\\n' 'Update the direct copy first, then adopt the matching release. Homebrew-owned copies use brew upgrade.' >&2
+        exit 1
+      fi
+      exec /usr/bin/codesign --verify --deep --strict -R \\
+        'anchor apple generic and identifier "com.conduit-technologies.macCurrent" and certificate leaf[subject.OU] = "D3B973F339"' "$app"
+    SH
   end
 
   zap trash: [
