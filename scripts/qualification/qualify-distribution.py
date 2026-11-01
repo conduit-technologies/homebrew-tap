@@ -18,7 +18,7 @@ root = pathlib.Path(args.output).resolve()
 root.mkdir(parents=True, exist_ok=False)
 appdir = root / 'Applications'; appdir.mkdir()
 app = appdir / 'macCurrent.app'
-env = dict(os.environ, HOMEBREW_NO_AUTO_UPDATE='1', HOMEBREW_NO_ANALYTICS='1', HOMEBREW_NO_INSTALL_CLEANUP='1', HOMEBREW_NO_ENV_HINTS='1')
+env = dict(os.environ, HOMEBREW_NO_AUTO_UPDATE='1', HOMEBREW_NO_ANALYTICS='1', HOMEBREW_NO_INSTALL_CLEANUP='1', HOMEBREW_NO_ENV_HINTS='1', XDG_CONFIG_HOME=str(root/'private-homebrew-config'))
 token = 'conduit-technologies/tap/maccurrent'
 evidence = {'architecture': platform.machine(), 'osVersion': platform.mac_ver()[0], 'phases': [], 'result': 'failed'}
 
@@ -72,6 +72,7 @@ for process in processes:
         raise RuntimeError('Quit the regular macCurrent app normally before qualification')
 repo=pathlib.Path(brew('--repo','conduit-technologies/tap').stdout.strip())
 recipe=repo/'Casks/maccurrent.rb'; original=recipe.read_text()
+brew('trust','--cask',token)
 assert not json.loads(brew('info','--json=v2','--cask',token).stdout)['casks'][0].get('installed'), 'Use a prefix without an installed macCurrent cask'
 older=manifest(args.older_version); target=manifest(args.target_version)
 assert re.search(r'  version "'+re.escape(args.target_version)+'"',original)

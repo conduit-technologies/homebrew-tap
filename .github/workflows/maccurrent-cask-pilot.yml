@@ -30,6 +30,7 @@ jobs:
           HOMEBREW_NO_INSTALL_CLEANUP: '1'
         run: |
           brew tap conduit-technologies/tap "$GITHUB_WORKSPACE"
+          brew trust --cask conduit-technologies/tap/maccurrent
           brew style --cask conduit-technologies/tap/maccurrent
           brew audit --cask --online conduit-technologies/tap/maccurrent
           appdir="$RUNNER_TEMP/cask-apps"
