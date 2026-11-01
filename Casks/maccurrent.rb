@@ -5,16 +5,16 @@ cask "maccurrent" do
   url "https://downloads.maccurrent.com/releases/direct/#{version}/macCurrent-#{version}.dmg",
       verified: "downloads.maccurrent.com/"
   name "macCurrent"
-  desc "Find, install, and track supported Mac app updates"
+  desc "Find, install, and track supported application updates"
   homepage "https://maccurrent.com/"
 
   livecheck do
     url "https://downloads.maccurrent.com/releases/direct/appcast.xml"
-    strategy :sparkle
+    strategy :sparkle, &:short_version
   end
 
   auto_updates true
-  depends_on macos: ">= :sequoia"
+  depends_on macos: :sequoia
 
   app "macCurrent.app"
 
