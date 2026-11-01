@@ -1,0 +1,39 @@
+name: macCurrent cask pilot
+on:
+  pull_request:
+    paths: ['Casks/maccurrent.rb', 'scripts/**', '.github/workflows/maccurrent-cask-pilot.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  intel:
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Require native Intel macOS 15
+        run: |
+          test "$(uname -m)" = x86_64
+          [[ "$(sw_vers -productVersion)" == 15.* ]]
+          test "$(sysctl -in sysctl.proc_translated 2>/dev/null || true)" != 1
+      - name: Validate release manifest handling
+        run: python3 scripts/test-update-maccurrent-cask.py
+      - name: Validate and exercise cask
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_ANALYTICS: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+        run: |
+          brew tap conduit-technologies/tap "$GITHUB_WORKSPACE"
+          brew style --cask conduit-technologies/tap/maccurrent
+          brew audit --cask --online conduit-technologies/tap/maccurrent
+          appdir="$RUNNER_TEMP/cask-apps"
+          brew install --cask --appdir="$appdir" conduit-technologies/tap/maccurrent
+          app="$appdir/macCurrent.app"
+          codesign --verify --deep --strict "$app"
+          spctl --assess --type execute "$app"
+          lipo "$app/Contents/MacOS/macCurrent" -verify_arch x86_64
+          test "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$app/Contents/Info.plist")" = 15.0
+          brew reinstall --cask --appdir="$appdir" conduit-technologies/tap/maccurrent
+          brew uninstall --cask conduit-technologies/tap/maccurrent
+          test ! -e "$app"
