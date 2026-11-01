@@ -1,0 +1,60 @@
+{
+  "architecture": "arm64",
+  "osVersion": "27.2",
+  "phases": [
+    {
+      "name": "install-genuine-older-release",
+      "result": "passed",
+      "version": "1.2.0.65",
+      "build": "504",
+      "binarySHA256": "17d109a1d2fda99a58f87a9d717349b925920781852e7981beb66b55484dec6a"
+    },
+    {
+      "name": "native-brew-upgrade",
+      "result": "passed",
+      "version": "1.2.0.68",
+      "build": "508",
+      "binarySHA256": "beb09ebd83faedeebe1cc288e311fad53168de5ea9b0f5cc6ad68d5c62f02d63"
+    },
+    {
+      "name": "native-sparkle-upgrade",
+      "result": "passed",
+      "version": "1.2.0.68",
+      "build": "508",
+      "binarySHA256": "beb09ebd83faedeebe1cc288e311fad53168de5ea9b0f5cc6ad68d5c62f02d63"
+    },
+    {
+      "name": "older-cask-does-not-downgrade-sparkle-release",
+      "result": "passed",
+      "version": "1.2.0.68",
+      "build": "508",
+      "binarySHA256": "beb09ebd83faedeebe1cc288e311fad53168de5ea9b0f5cc6ad68d5c62f02d63"
+    },
+    {
+      "name": "brew-after-sparkle-upgrade",
+      "result": "passed",
+      "version": "1.2.0.68",
+      "build": "508",
+      "binarySHA256": "beb09ebd83faedeebe1cc288e311fad53168de5ea9b0f5cc6ad68d5c62f02d63"
+    },
+    {
+      "name": "reject-adoption-of-older-direct-copy",
+      "result": "passed",
+      "version": "1.2.0.65",
+      "build": "504",
+      "binarySHA256": "17d109a1d2fda99a58f87a9d717349b925920781852e7981beb66b55484dec6a"
+    },
+    {
+      "name": "reject-tampered-direct-copy-without-changing-it",
+      "result": "passed"
+    },
+    {
+      "name": "adopt-current-direct-copy",
+      "result": "passed",
+      "version": "1.2.0.68",
+      "build": "508",
+      "binarySHA256": "beb09ebd83faedeebe1cc288e311fad53168de5ea9b0f5cc6ad68d5c62f02d63"
+    }
+  ],
+  "result": "passed"
+}
